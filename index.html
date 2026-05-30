@@ -543,9 +543,7 @@ h1 span { color: var(--accent); }
     <!-- Consistency Calendar (last 4 weeks) -->
     <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
       <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Konsistenz – letzte 4 Wochen</div>
-      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
-        ${['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => `<div style="text-align:center;font-size:9px;color:var(--muted);letter-spacing:0.5px;">${d}</div>`).join('')}
-      </div>
+      <div id="consistencyHeader" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;"></div>
       <div id="consistencyGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
       <div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:var(--muted);">
         <span>🟢 Aktiv</span><span>⚪ Pause</span><span>💤 Ruhetag</span>
@@ -1298,128 +1296,91 @@ function showRoutine(data) {
 }
 
 function getHippo(streak) {
-  // Different hippo states based on streak
-  if (streak === 0) {
-    // Sleepy hippo
-    return `<svg width="100" height="100" viewBox="0 0 100 100">
-      <!-- Body -->
-      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
-      <!-- Head -->
-      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
-      <!-- Ears -->
-      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <!-- Eyes closed (sleeping) -->
-      <path d="M40 40 Q43 38 46 40" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <path d="M54 40 Q57 38 60 40" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <!-- Nose -->
-      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
-      <circle cx="46" cy="49" r="2" fill="#555"/>
-      <circle cx="54" cy="49" r="2" fill="#555"/>
-      <!-- ZZZ -->
-      <text x="68" y="30" font-size="12" fill="#aaa" font-weight="bold">z</text>
-      <text x="74" y="22" font-size="14" fill="#bbb" font-weight="bold">z</text>
-      <text x="80" y="13" font-size="16" fill="#ccc" font-weight="bold">Z</text>
-      <!-- Legs -->
-      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-    </svg>`;
-  } else if (streak < 7) {
-    // Happy hippo
-    return `<svg width="100" height="100" viewBox="0 0 100 100">
-      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
-      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <circle cx="43" cy="40" r="4" fill="white"/>
-      <circle cx="57" cy="40" r="4" fill="white"/>
-      <circle cx="44" cy="41" r="2" fill="#333"/>
-      <circle cx="58" cy="41" r="2" fill="#333"/>
-      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
-      <circle cx="46" cy="49" r="2" fill="#555"/>
-      <circle cx="54" cy="49" r="2" fill="#555"/>
-      <path d="M42 55 Q50 60 58 55" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-      <!-- Small weights -->
-      <rect x="18" y="60" width="12" height="4" rx="2" fill="#e8502a"/>
-      <rect x="70" y="60" width="12" height="4" rx="2" fill="#e8502a"/>
-    </svg>`;
-  } else if (streak < 14) {
-    // Cool hippo with sunglasses
-    return `<svg width="100" height="100" viewBox="0 0 100 100">
-      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
-      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <!-- Sunglasses -->
-      <rect x="36" y="37" width="12" height="8" rx="4" fill="#222"/>
-      <rect x="52" y="37" width="12" height="8" rx="4" fill="#222"/>
-      <line x1="48" y1="41" x2="52" y2="41" stroke="#222" stroke-width="2"/>
-      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
-      <circle cx="46" cy="49" r="2" fill="#555"/>
-      <circle cx="54" cy="49" r="2" fill="#555"/>
-      <path d="M42 55 Q50 62 58 55" stroke="#444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
-      <!-- Fire -->
-      <text x="44" y="18" font-size="16">🔥</text>
-    </svg>`;
-  } else if (streak < 30) {
-    // Super hippo with cape
-    return `<svg width="100" height="100" viewBox="0 0 100 100">
-      <!-- Cape -->
-      <path d="M28 55 Q20 80 35 88 Q50 75 65 88 Q80 80 72 55" fill="#e8502a" opacity="0.9"/>
-      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
-      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
-      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <rect x="36" y="37" width="12" height="8" rx="4" fill="#222"/>
-      <rect x="52" y="37" width="12" height="8" rx="4" fill="#222"/>
-      <line x1="48" y1="41" x2="52" y2="41" stroke="#222" stroke-width="2"/>
-      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
-      <circle cx="46" cy="49" r="2" fill="#555"/>
-      <circle cx="54" cy="49" r="2" fill="#555"/>
-      <path d="M42 55 Q50 62 58 55" stroke="#444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <!-- Lightning bolt -->
-      <text x="44" y="75" font-size="14">⚡</text>
-      <!-- Stars -->
-      <text x="20" y="25" font-size="12">⭐</text>
-      <text x="68" y="20" font-size="12">⭐</text>
-    </svg>`;
-  } else {
-    // Legendary hippo on fire
-    return `<svg width="100" height="100" viewBox="0 0 100 100">
-      <!-- Flames -->
-      <text x="15" y="35" font-size="20">🔥</text>
-      <text x="65" y="30" font-size="20">🔥</text>
-      <path d="M28 55 Q20 80 35 88 Q50 75 65 88 Q80 80 72 55" fill="#e8502a" opacity="0.9"/>
-      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
-      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#FFD700"/>
-      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#FFD700"/>
-      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#FFD700"/>
-      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
-      <rect x="36" y="37" width="12" height="8" rx="4" fill="#111"/>
-      <rect x="52" y="37" width="12" height="8" rx="4" fill="#111"/>
-      <line x1="48" y1="41" x2="52" y2="41" stroke="#111" stroke-width="2"/>
-      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#FFE066"/>
-      <circle cx="46" cy="49" r="2" fill="#333"/>
-      <circle cx="54" cy="49" r="2" fill="#333"/>
-      <path d="M42 55 Q50 63 58 55" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <text x="40" y="75" font-size="16">👑</text>
-    </svg>`;
-  }
-}
+  const base = (face, extras='') => `<svg width="110" height="110" viewBox="0 0 110 110">
+    <ellipse cx="55" cy="105" rx="30" ry="5" fill="#ccc" opacity="0.4"/>
+    <ellipse cx="55" cy="80" rx="33" ry="23" fill="#7a9dbf"/>
+    <ellipse cx="55" cy="84" rx="21" ry="14" fill="#b0cce0"/>
+    <ellipse cx="55" cy="54" rx="27" ry="23" fill="#7a9dbf"/>
+    <ellipse cx="55" cy="66" rx="19" ry="11" fill="#6a8daf"/>
+    <ellipse cx="48" cy="63" rx="4" ry="3" fill="#5a7d9f"/>
+    <ellipse cx="62" cy="63" rx="4" ry="3" fill="#5a7d9f"/>
+    <circle cx="48" cy="63" r="2" fill="#3a5d7f"/>
+    <circle cx="62" cy="63" r="2" fill="#3a5d7f"/>
+    <circle cx="31" cy="37" r="7" fill="#7a9dbf"/>
+    <circle cx="79" cy="37" r="7" fill="#7a9dbf"/>
+    <circle cx="31" cy="37" r="4" fill="#f0b0c0"/>
+    <circle cx="79" cy="37" r="4" fill="#f0b0c0"/>
+    <circle cx="37" cy="58" r="6" fill="#f0b0c0" opacity="0.4"/>
+    <circle cx="73" cy="58" r="6" fill="#f0b0c0" opacity="0.4"/>
+    ${face}
+    <ellipse cx="37" cy="98" rx="11" ry="7" fill="#6a8daf"/>
+    <ellipse cx="73" cy="98" rx="11" ry="7" fill="#6a8daf"/>
+    <line x1="31" y1="101" x2="31" y2="104" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="37" y1="103" x2="37" y2="106" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="43" y1="101" x2="43" y2="104" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="67" y1="101" x2="67" y2="104" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="73" y1="103" x2="73" y2="106" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="79" y1="101" x2="79" y2="104" stroke="#5a7d9f" stroke-width="1.5" stroke-linecap="round"/>
+    ${extras}
+  </svg>`;
 
+  if (streak === 0) return base(`
+    <path d="M42 46 Q46 43 50 46" stroke="#3a5d7f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M60 46 Q64 43 68 46" stroke="#3a5d7f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <path d="M47 71 Q55 75 63 71" stroke="#3a5d7f" stroke-width="2" fill="none" stroke-linecap="round"/>
+  `, `
+    <text x="76" y="42" font-size="10" fill="#aac4e0" font-weight="bold"><animate attributeName="opacity" values="1;0.2;1" dur="2s" repeatCount="indefinite"/>z</text>
+    <text x="82" y="30" font-size="13" fill="#aac4e0" font-weight="bold"><animate attributeName="opacity" values="1;0.2;1" dur="2s" begin="0.4s" repeatCount="indefinite"/>z</text>
+    <text x="88" y="18" font-size="16" fill="#aac4e0" font-weight="bold"><animate attributeName="opacity" values="1;0.2;1" dur="2s" begin="0.8s" repeatCount="indefinite"/>Z</text>
+  `);
+
+  if (streak < 7) return base(`
+    <circle cx="46" cy="46" r="6" fill="white"/>
+    <circle cx="64" cy="46" r="6" fill="white"/>
+    <circle cx="47" cy="47" r="3.5" fill="#2a4a6a"/>
+    <circle cx="65" cy="47" r="3.5" fill="#2a4a6a"/>
+    <circle cx="48" cy="46" r="1.5" fill="white"/>
+    <circle cx="66" cy="46" r="1.5" fill="white"/>
+    <path d="M44 71 Q55 79 66 71" stroke="#3a5d7f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="50" y="71" width="5" height="4" rx="1" fill="white"/>
+    <rect x="57" y="71" width="5" height="4" rx="1" fill="white"/>
+  `, `<rect x="15" y="70" width="14" height="3" rx="1.5" fill="#e8502a"/>
+    <circle cx="15" cy="71.5" r="4" fill="#c03010"/>
+    <circle cx="29" cy="71.5" r="4" fill="#c03010"/>`);
+
+  if (streak < 14) return base(`
+    <rect x="36" y="42" width="17" height="11" rx="5" fill="#111"/>
+    <rect x="57" y="42" width="17" height="11" rx="5" fill="#111"/>
+    <line x1="53" y1="47" x2="57" y2="47" stroke="#333" stroke-width="2"/>
+    <line x1="39" y1="45" x2="45" y2="45" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+    <line x1="60" y1="45" x2="66" y2="45" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+    <path d="M47 71 Q57 77 65 73" stroke="#3a5d7f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  `, `<text x="46" y="22" font-size="18">🔥</text>`);
+
+  if (streak < 30) return base(`
+    <rect x="36" y="42" width="17" height="11" rx="5" fill="#111"/>
+    <rect x="57" y="42" width="17" height="11" rx="5" fill="#111"/>
+    <line x1="53" y1="47" x2="57" y2="47" stroke="#333" stroke-width="2"/>
+    <line x1="39" y1="45" x2="45" y2="45" stroke="white" stroke-width="1.5" opacity="0.4" stroke-linecap="round"/>
+    <path d="M44 71 Q55 79 66 71" stroke="#3a5d7f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="50" y="71" width="5" height="4" rx="1" fill="white"/>
+    <rect x="57" y="71" width="5" height="4" rx="1" fill="white"/>
+  `, `<path d="M25 80 Q16 97 32 102 Q55 90 78 102 Q94 97 85 80" fill="#e8502a" opacity="0.85"/>
+    <text x="44" y="18" font-size="16">⭐</text><text x="60" y="13" font-size="12">⭐</text>`);
+
+  return base(`
+    <rect x="36" y="42" width="17" height="11" rx="5" fill="#B8860B"/>
+    <rect x="57" y="42" width="17" height="11" rx="5" fill="#B8860B"/>
+    <line x1="53" y1="47" x2="57" y2="47" stroke="#B8860B" stroke-width="2"/>
+    <line x1="39" y1="45" x2="45" y2="45" stroke="#FFD700" stroke-width="1.5" opacity="0.6" stroke-linecap="round"/>
+    <path d="M42 71 Q55 81 68 71" stroke="#7a5d00" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+    <rect x="49" y="71" width="5" height="5" rx="1" fill="white"/>
+    <rect x="57" y="71" width="5" height="5" rx="1" fill="white"/>
+  `, `<path d="M25 80 Q16 97 32 102 Q55 90 78 102 Q94 97 85 80" fill="#FFD700" opacity="0.85"/>
+    <text x="44" y="16" font-size="20">👑</text>
+    <text x="18" y="42" font-size="14">🔥</text>
+    <text x="80" y="38" font-size="14">🔥</text>`);
+}
 function getHippoMessage(streak) {
   if (streak === 0) return "Dein inneres Nilpferd wartet auf dich... 🦛";
   if (streak < 3) return "Dein inneres Nilpferd ist aufgewacht! 🦛";
@@ -1495,7 +1456,8 @@ function renderDashboard() {
     action.onclick = () => logYoga();
   }
 
-  // Consistency grid (28 days)
+  // Render consistency header
+  document.getElementById('consistencyHeader').innerHTML = ['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => `<div style="text-align:center;font-size:9px;color:var(--muted);letter-spacing:0.5px;">${d}</div>`).join('');
   const grid = document.getElementById('consistencyGrid');
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
   const todayIdx = (new Date().getDay() + 6) % 7;
