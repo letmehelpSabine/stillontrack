@@ -615,50 +615,112 @@ h1 span { color: var(--accent); }
         <button onclick="startGuidedMode()" style="width:100%;margin-top:16px;padding:16px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
           ▶ Guided Mode starten
         </button>
+        <button onclick="startGuidedWithCamera()" style="width:100%;margin-top:8px;padding:16px;background:var(--ink);color:var(--bg);border:none;border-radius:10px;font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+          🎥 Mit Video aufnehmen
+        </button>
         <button onclick="document.getElementById('routineResult').style.display='none'" class="btn-reset" style="margin-top:8px;">↺ Neue Routine</button>
       </div>
     </div>
   </div>
 
-  <!-- GUIDED MODE OVERLAY -->
-  <div id="guidedOverlay" style="display:none;position:fixed;inset:0;background:#0a0a0f;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
-    <div style="width:100%;max-width:400px;text-align:center;">
-      <!-- Progress -->
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-        <button onclick="stopGuidedMode()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">✕ Beenden</button>
-        <div id="guidedProgress" style="font-family:'Space Mono',monospace;font-size:12px;color:#888;"></div>
-        <button onclick="nextExercise()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">Weiter →</button>
-      </div>
-
-      <!-- Exercise number -->
-      <div id="guidedNumber" style="font-family:'Unbounded',sans-serif;font-size:80px;font-weight:900;color:#e8502a;line-height:1;margin-bottom:8px;"></div>
-
-      <!-- Animation -->
-      <div id="guidedAnimation" style="margin:16px auto;width:120px;height:120px;display:flex;align-items:center;justify-content:center;"></div>
-
-      <!-- Exercise name -->
-      <div id="guidedName" style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:10px;line-height:1.2;"></div>
-
-      <!-- Description -->
-      <div id="guidedDesc" style="font-size:14px;color:#888;line-height:1.7;margin-bottom:24px;"></div>
-
-      <!-- Timer circle -->
-      <div style="position:relative;width:130px;height:130px;margin:0 auto 24px;">
-        <svg width="130" height="130" style="transform:rotate(-90deg);">
-          <circle cx="65" cy="65" r="58" fill="none" stroke="#222" stroke-width="8"/>
-          <circle id="timerCircle" cx="65" cy="65" r="58" fill="none" stroke="#e8502a" stroke-width="8"
-            stroke-dasharray="364" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
-        </svg>
-        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
-          <div id="timerDisplay" style="font-family:'Unbounded',sans-serif;font-size:36px;font-weight:900;color:white;"></div>
-          <div style="font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;">Sek</div>
+  <!-- CAMERA PREVIEW -->
+  <div id="cameraOverlay" style="display:none;position:fixed;inset:0;background:#000;z-index:999;flex-direction:column;">
+    <video id="cameraPreview" style="width:100%;height:100%;object-fit:cover;" autoplay muted playsinline></video>
+    <!-- Guided mode on top of camera -->
+    <div id="cameraGuidedInfo" style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);padding:20px;text-align:center;">
+      <div id="camProgress" style="font-family:'Space Mono',monospace;font-size:11px;color:#888;margin-bottom:8px;"></div>
+      <div id="camName" style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;color:white;margin-bottom:6px;"></div>
+      <div id="camDesc" style="font-size:12px;color:#aaa;margin-bottom:12px;line-height:1.5;"></div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:16px;">
+        <div style="position:relative;width:80px;height:80px;">
+          <svg width="80" height="80" style="transform:rotate(-90deg);">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#333" stroke-width="6"/>
+            <circle id="camCircle" cx="40" cy="40" r="34" fill="none" stroke="#e8502a" stroke-width="6" stroke-dasharray="213" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+            <div id="camTimer" style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:white;"></div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <button id="camRecBtn" onclick="toggleCameraRecording()" style="padding:10px 16px;background:#e8502a;color:white;border:none;border-radius:8px;font-family:'Unbounded',sans-serif;font-size:12px;font-weight:700;cursor:pointer;">⏺ REC</button>
+          <button onclick="stopCameraMode()" style="padding:10px 16px;background:transparent;border:1px solid #444;color:#888;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">✕ Stop</button>
         </div>
       </div>
+    </div>
+    <!-- Prep screen overlay for camera -->
+    <div id="camPrepScreen" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.85);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;">
+      <div style="font-size:11px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px;">Nächste Übung</div>
+      <div id="camPrepNumber" style="font-family:'Unbounded',sans-serif;font-size:50px;font-weight:900;color:#e8502a;"></div>
+      <div id="camPrepName" style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:900;color:white;margin:8px 0;"></div>
+      <div id="camPrepDesc" style="font-size:13px;color:#aaa;line-height:1.6;margin-bottom:16px;"></div>
+      <div style="font-family:'Unbounded',sans-serif;font-size:40px;font-weight:900;color:#2ab55a;" id="camPrepTimer"></div>
+      <button onclick="skipCameraPrep()" style="margin-top:12px;padding:10px 24px;background:transparent;border:1px solid #444;color:#888;border-radius:8px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;">Los geht's →</button>
+    </div>
+  </div>
+  <div id="guidedOverlay" style="display:none;position:fixed;inset:0;background:#0a0a0f;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="width:100%;max-width:400px;text-align:center;">
 
-      <!-- Pause/Resume -->
-      <button id="pauseBtn" onclick="togglePause()" style="width:100%;padding:16px;background:#e8502a;color:white;border:none;border-radius:12px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">
-        ⏸ Pause
-      </button>
+      <!-- Prep Screen (shown before timer starts) -->
+      <div id="prepScreen" style="display:none;">
+        <div style="font-size:12px;color:#888;font-family:'Space Mono',monospace;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;">Nächste Übung</div>
+        <div id="prepNumber" style="font-family:'Unbounded',sans-serif;font-size:60px;font-weight:900;color:#e8502a;line-height:1;margin-bottom:8px;"></div>
+        <div id="prepAnimation" style="margin:12px auto;width:100px;height:100px;display:flex;align-items:center;justify-content:center;"></div>
+        <div id="prepName" style="font-family:'Unbounded',sans-serif;font-size:20px;font-weight:900;color:white;margin-bottom:10px;line-height:1.2;"></div>
+        <div id="prepDesc" style="font-size:13px;color:#aaa;line-height:1.7;margin-bottom:20px;padding:0 10px;"></div>
+        <div style="position:relative;width:100px;height:100px;margin:0 auto 20px;">
+          <svg width="100" height="100" style="transform:rotate(-90deg);">
+            <circle cx="50" cy="50" r="44" fill="none" stroke="#333" stroke-width="8"/>
+            <circle id="prepCircle" cx="50" cy="50" r="44" fill="none" stroke="#2ab55a" stroke-width="8" stroke-dasharray="276" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div id="prepTimer" style="font-family:'Unbounded',sans-serif;font-size:28px;font-weight:900;color:#2ab55a;"></div>
+            <div style="font-size:9px;color:#666;letter-spacing:1px;">BEREIT</div>
+          </div>
+        </div>
+        <button onclick="skipPrep()" style="padding:10px 24px;background:transparent;border:1px solid #444;color:#888;border-radius:8px;font-family:'Space Mono',monospace;font-size:12px;cursor:pointer;">
+          Überspringen →
+        </button>
+      </div>
+
+      <!-- Exercise Screen -->
+      <div id="exerciseScreen">
+        <!-- Progress -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <button onclick="stopGuidedMode()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">✕ Beenden</button>
+          <div id="guidedProgress" style="font-family:'Space Mono',monospace;font-size:12px;color:#888;"></div>
+          <button onclick="nextExercise()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">Weiter →</button>
+        </div>
+
+        <!-- Exercise number -->
+        <div id="guidedNumber" style="font-family:'Unbounded',sans-serif;font-size:80px;font-weight:900;color:#e8502a;line-height:1;margin-bottom:8px;"></div>
+
+        <!-- Animation -->
+        <div id="guidedAnimation" style="margin:16px auto;width:120px;height:120px;display:flex;align-items:center;justify-content:center;"></div>
+
+        <!-- Exercise name -->
+        <div id="guidedName" style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:10px;line-height:1.2;"></div>
+
+        <!-- Description -->
+        <div id="guidedDesc" style="font-size:14px;color:#888;line-height:1.7;margin-bottom:24px;"></div>
+
+        <!-- Timer circle -->
+        <div style="position:relative;width:130px;height:130px;margin:0 auto 24px;">
+          <svg width="130" height="130" style="transform:rotate(-90deg);">
+            <circle cx="65" cy="65" r="58" fill="none" stroke="#222" stroke-width="8"/>
+            <circle id="timerCircle" cx="65" cy="65" r="58" fill="none" stroke="#e8502a" stroke-width="8"
+              stroke-dasharray="364" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+          </svg>
+          <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <div id="timerDisplay" style="font-family:'Unbounded',sans-serif;font-size:36px;font-weight:900;color:white;"></div>
+            <div style="font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;">Sek</div>
+          </div>
+        </div>
+
+        <!-- Pause/Resume -->
+        <button id="pauseBtn" onclick="togglePause()" style="width:100%;padding:16px;background:#e8502a;color:white;border:none;border-radius:12px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">
+          ⏸ Pause
+        </button>
+      </div>
     </div>
   </div>
 
@@ -988,6 +1050,150 @@ function showRealityCheck(data) {
   document.getElementById('realityResult').scrollIntoView({ behavior: 'smooth' });
 }
 
+// Camera Mode
+let cameraStream = null;
+let mediaRecorder = null;
+let recordedChunks = [];
+let isRecording = false;
+let camPrepTimer = null;
+let camPrepSeconds = 20;
+let camExerciseTimer = null;
+let camSeconds = 0;
+let camTotalSeconds = 0;
+let camIndex = 0;
+let camExercises = [];
+
+async function startGuidedWithCamera() {
+  const exercises = [];
+  document.querySelectorAll('#routineExercises > div').forEach(el => {
+    const name = el.querySelector('div > div:first-child')?.textContent || '';
+    const desc = el.querySelector('div > div:last-child')?.textContent || '';
+    const dauer = el.querySelector('div:last-child')?.textContent || '30 Sek';
+    exercises.push({ name, desc, dauer, seconds: parseDuration(dauer) });
+  });
+  if (exercises.length === 0) return;
+  camExercises = exercises;
+  camIndex = 0;
+
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: true });
+    document.getElementById('cameraPreview').srcObject = cameraStream;
+    document.getElementById('cameraOverlay').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    showCameraPrep();
+  } catch (err) {
+    alert('Kamera nicht verfügbar – nutze den normalen Guided Mode.');
+  }
+}
+
+function showCameraPrep() {
+  if (camIndex >= camExercises.length) {
+    finishCameraMode();
+    return;
+  }
+  clearInterval(camExerciseTimer);
+  clearInterval(camPrepTimer);
+  const ex = camExercises[camIndex];
+  camPrepSeconds = 20;
+
+  const prep = document.getElementById('camPrepScreen');
+  prep.style.display = 'flex';
+  document.getElementById('camPrepNumber').textContent = camIndex + 1;
+  document.getElementById('camPrepName').textContent = ex.name;
+  document.getElementById('camPrepDesc').textContent = ex.desc;
+  document.getElementById('camPrepTimer').textContent = camPrepSeconds;
+
+  camPrepTimer = setInterval(() => {
+    camPrepSeconds--;
+    document.getElementById('camPrepTimer').textContent = camPrepSeconds;
+    if (camPrepSeconds <= 0) {
+      clearInterval(camPrepTimer);
+      startCameraExercise(ex);
+    }
+  }, 1000);
+}
+
+function skipCameraPrep() {
+  clearInterval(camPrepTimer);
+  startCameraExercise(camExercises[camIndex]);
+}
+
+function startCameraExercise(ex) {
+  document.getElementById('camPrepScreen').style.display = 'none';
+  camSeconds = ex.seconds;
+  camTotalSeconds = ex.seconds;
+
+  document.getElementById('camProgress').textContent = `${camIndex + 1} / ${camExercises.length}`;
+  document.getElementById('camName').textContent = ex.name;
+  document.getElementById('camDesc').textContent = ex.desc;
+  document.getElementById('camTimer').textContent = camSeconds;
+
+  camExerciseTimer = setInterval(() => {
+    camSeconds--;
+    document.getElementById('camTimer').textContent = camSeconds;
+    const offset = 213 * (1 - camSeconds / camTotalSeconds);
+    document.getElementById('camCircle').style.strokeDashoffset = offset;
+    if (camSeconds <= 0) {
+      clearInterval(camExerciseTimer);
+      camIndex++;
+      setTimeout(() => showCameraPrep(), 500);
+    }
+  }, 1000);
+}
+
+function toggleCameraRecording() {
+  if (!isRecording) {
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(cameraStream);
+    mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+    mediaRecorder.onstop = saveCameraVideo;
+    mediaRecorder.start();
+    isRecording = true;
+    document.getElementById('camRecBtn').textContent = '⏹ Stop';
+    document.getElementById('camRecBtn').style.background = '#2ab55a';
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    document.getElementById('camRecBtn').textContent = '⏺ REC';
+    document.getElementById('camRecBtn').style.background = '#e8502a';
+  }
+}
+
+function saveCameraVideo() {
+  const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'stillontrack-routine.mp4';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function stopCameraMode() {
+  clearInterval(camExerciseTimer);
+  clearInterval(camPrepTimer);
+  if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; }
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.getElementById('cameraOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function finishCameraMode() {
+  clearInterval(camExerciseTimer);
+  if (isRecording && mediaRecorder) { mediaRecorder.stop(); isRecording = false; }
+  const overlay = document.getElementById('cameraOverlay');
+  const info = document.getElementById('cameraGuidedInfo');
+  info.innerHTML = `
+    <div style="text-align:center;padding:20px;">
+      <div style="font-size:50px;margin-bottom:12px;">🎉</div>
+      <div style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:8px;">Fertig!</div>
+      <div style="font-size:13px;color:#888;margin-bottom:20px;">Video wird gespeichert...</div>
+      <button onclick="stopCameraMode()" style="width:100%;padding:14px;background:#e8502a;color:white;border:none;border-radius:10px;font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;cursor:pointer;">✓ Zurück</button>
+    </div>`;
+  if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+  document.body.style.overflow = '';
+}
+
 // Guided Mode
 let guidedExercises = [];
 let guidedIndex = 0;
@@ -1021,6 +1227,9 @@ function startGuidedMode() {
   showGuidedExercise();
 }
 
+let prepTimer = null;
+let prepSeconds = 20;
+
 function showGuidedExercise() {
   if (guidedIndex >= guidedExercises.length) {
     finishGuidedMode();
@@ -1028,10 +1237,48 @@ function showGuidedExercise() {
   }
 
   clearInterval(guidedTimer);
+  clearInterval(prepTimer);
   const ex = guidedExercises[guidedIndex];
+  guidedPaused = false;
+
+  // Show prep screen first
+  document.getElementById('prepScreen').style.display = 'block';
+  document.getElementById('exerciseScreen').style.display = 'none';
+
+  document.getElementById('prepNumber').textContent = guidedIndex + 1;
+  document.getElementById('prepName').textContent = ex.name;
+  document.getElementById('prepDesc').textContent = ex.desc;
+  const svgContent = getExerciseAnimation(ex.name);
+  document.getElementById('prepAnimation').innerHTML = svgContent.replace('width="60" height="60"', 'width="100" height="100"');
+
+  prepSeconds = 20;
+  document.getElementById('prepTimer').textContent = prepSeconds;
+  document.getElementById('prepCircle').style.strokeDashoffset = 0;
+
+  prepTimer = setInterval(() => {
+    prepSeconds--;
+    document.getElementById('prepTimer').textContent = prepSeconds;
+    const offset = 276 * (1 - prepSeconds / 20);
+    document.getElementById('prepCircle').style.strokeDashoffset = offset;
+    if (prepSeconds <= 0) {
+      clearInterval(prepTimer);
+      startExercise(ex);
+    }
+  }, 1000);
+}
+
+function skipPrep() {
+  clearInterval(prepTimer);
+  const ex = guidedExercises[guidedIndex];
+  startExercise(ex);
+}
+
+function startExercise(ex) {
+  document.getElementById('prepScreen').style.display = 'none';
+  document.getElementById('exerciseScreen').style.display = 'block';
+
   guidedSeconds = ex.seconds;
   guidedTotalSeconds = ex.seconds;
-  guidedPaused = false;
 
   document.getElementById('guidedNumber').textContent = guidedIndex + 1;
   document.getElementById('guidedName').textContent = ex.name;
@@ -1039,11 +1286,9 @@ function showGuidedExercise() {
   document.getElementById('guidedProgress').textContent = `${guidedIndex + 1} / ${guidedExercises.length}`;
   document.getElementById('pauseBtn').textContent = '⏸ Pause';
 
-  // Show animation
   const animEl = document.getElementById('guidedAnimation');
   const svgContent = getExerciseAnimation(ex.name);
-  // Scale up the SVG for guided mode
-  animEl.innerHTML = svgContent.replace('width="60" height="60"', 'width="120" height="120"').replace('viewBox="0 0 60 60"', 'viewBox="0 0 60 60"');
+  animEl.innerHTML = svgContent.replace('width="60" height="60"', 'width="120" height="120"');
 
   updateTimerDisplay();
   startTimer();
@@ -1088,7 +1333,10 @@ function nextExercise() {
 
 function stopGuidedMode() {
   clearInterval(guidedTimer);
+  clearInterval(prepTimer);
   document.getElementById('guidedOverlay').style.display = 'none';
+  document.getElementById('prepScreen').style.display = 'none';
+  document.getElementById('exerciseScreen').style.display = 'block';
   document.body.style.overflow = '';
 }
 
