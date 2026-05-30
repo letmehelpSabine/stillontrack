@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Still on Track</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@400;600;900&display=swap');
+
+:root {
+  --bg: #f5f0e8;
+  --surface: #ede8df;
+  --card: #ffffff;
+  --ink: #1a1410;
+  --muted: #8a7e6e;
+  --accent: #e8502a;
+  --accent2: #2a7ae8;
+  --success: #2ab55a;
+  --warn: #e8a02a;
+  --border: #d4cdc0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Space Mono', monospace;
+  min-height: 100vh;
+}
+
+.container { max-width: 760px; margin: 0 auto; padding: 20px 16px; }
+
+/* Header */
+header {
+  padding: 32px 0 24px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 28px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+h1 {
+  font-family: 'Unbounded', sans-serif;
+  font-size: clamp(22px, 5vw, 32px);
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+h1 span { color: var(--accent); }
+
+.tagline {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-top: 6px;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 28px;
+  gap: 0;
+}
+
+.tab {
+  padding: 10px 20px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.15s;
+}
+
+.tab.active {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+
+/* Tab content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Week Plan */
+.week-grid {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.day-row {
+  display: grid;
+  grid-template-columns: 80px 1fr 100px;
+  gap: 10px;
+  align-items: center;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.15s;
+}
+
+.day-row:hover { border-color: var(--ink); }
+
+.day-label {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.day-label.today { color: var(--accent); }
+
+.day-input {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  color: var(--ink);
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.day-input:focus {
+  outline: none;
+  border-color: var(--accent2);
+}
+
+.day-type {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.day-type:focus { outline: none; border-color: var(--accent2); }
+
+.btn-save-plan {
+  width: 100%;
+  padding: 14px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  margin-bottom: 8px;
+}
+
+.btn-save-plan:hover { background: var(--accent); }
+
+/* Log Tab */
+.upload-zone {
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--card);
+  margin-bottom: 16px;
+}
+
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--surface);
+}
+
+.upload-icon { font-size: 36px; margin-bottom: 10px; }
+.upload-zone h3 { font-family: 'Unbounded', sans-serif; font-size: 14px; margin-bottom: 6px; }
+.upload-zone p { font-size: 11px; color: var(--muted); }
+
+#fileInput { display: none; }
+
+.previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.preview-item {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  aspect-ratio: 9/16;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+}
+
+.preview-item img { width: 100%; height: 100%; object-fit: cover; }
+
+.preview-remove {
+  position: absolute;
+  top: 4px; right: 4px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.btn-analyze {
+  width: 100%;
+  padding: 14px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  margin-bottom: 20px;
+}
+
+.btn-analyze:hover:not(:disabled) { background: #c43d1e; }
+.btn-analyze:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Loading */
+.loading { display: none; text-align: center; padding: 40px; }
+.loading.active { display: block; }
+
+.spinner {
+  width: 36px; height: 36px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 14px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading p { font-size: 12px; color: var(--muted); }
+
+/* Results */
+.results { display: none; }
+.results.active { display: block; }
+
+/* Deviation Card */
+.deviation-card {
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.deviation-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 4px;
+  height: 100%;
+}
+
+.deviation-card.on-track::before { background: var(--success); }
+.deviation-card.off-track::before { background: var(--accent); }
+.deviation-card.partial::before { background: var(--warn); }
+
+.deviation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.deviation-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.status-badge.on-track { background: rgba(42,181,90,0.15); color: var(--success); }
+.status-badge.off-track { background: rgba(232,80,42,0.15); color: var(--accent); }
+.status-badge.partial { background: rgba(232,160,42,0.15); color: var(--warn); }
+
+/* Stats row */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stat-box {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.stat-box .label {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.stat-box .value {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.analysis-text {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: 14px;
+}
+
+/* Caption */
+.caption-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.caption-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.caption-text {
+  font-size: 12px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.btn-copy {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1.5px solid var(--ink);
+  color: var(--ink);
+  border-radius: 6px;
+  font-family: 'Space Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-copy:hover { background: var(--ink); color: var(--bg); }
+
+.btn-reset {
+  width: 100%;
+  padding: 12px;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+  border-radius: 8px;
+  font-family: 'Space Mono', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-top: 12px;
+}
+
+.btn-reset:hover { border-color: var(--accent); color: var(--accent); }
+
+/* History Tab */
+.history-empty {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-entry {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.history-entry:hover { border-color: var(--ink); }
+
+.history-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.history-date {
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.history-sport {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.history-stats {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* Week overview in history */
+.week-overview {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 20px;
+}
+
+.week-dot {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 2px;
+}
+
+.week-dot .day-name { color: var(--muted); margin-bottom: 3px; }
+.week-dot .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--border); }
+.week-dot.done .dot { background: var(--success); }
+.week-dot.missed .dot { background: var(--accent); }
+.week-dot.rest .dot { background: var(--border); }
+.week-dot.today .day-name { color: var(--accent); font-weight: 700; }
+
+.section-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 480px) {
+  .day-row { grid-template-columns: 60px 1fr 90px; }
+  .tab { padding: 10px 12px; font-size: 10px; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo-row">
+      <h1>Still on <span>Track</span></h1>
+    </div>
+    <p class="tagline">// Trainings-Tagebuch · Büroathletin</p>
+  </header>
+
+  <div class="tabs" style="overflow-x:auto;flex-wrap:nowrap;">
+    <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
+    <button class="tab" onclick="showTab('import')">Plan einlesen</button>
+    <button class="tab" onclick="showTab('plan')">Wochenplan</button>
+    <button class="tab" onclick="showTab('log')">Loggen</button>
+    <button class="tab" onclick="showTab('history')">Verlauf</button>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div class="tab-content active" id="tab-dashboard">
+    <!-- Status Card -->
+    <div id="statusCard" style="border-radius:16px;padding:24px;margin-bottom:16px;border:2px solid var(--ink);position:relative;overflow:hidden;">
+      <div id="statusEmoji" style="font-size:40px;margin-bottom:10px;">💪</div>
+      <div id="statusTitle" style="font-family:'Unbounded',sans-serif;font-size:18px;font-weight:900;margin-bottom:8px;"></div>
+      <div id="statusMsg" style="font-size:13px;line-height:1.7;color:var(--ink);"></div>
+      <div id="statusAction" style="margin-top:14px;padding:12px 16px;background:var(--ink);color:var(--bg);border-radius:8px;font-size:12px;font-weight:700;font-family:'Unbounded',sans-serif;display:inline-block;cursor:pointer;" onclick="logYoga()"></div>
+    </div>
+
+    <!-- Hippo Streak Card -->
+    <div id="hippoCard" style="background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:20px;margin-bottom:16px;text-align:center;">
+      <div id="hippoSvg" style="margin:0 auto 12px;"></div>
+      <div id="hippoStreak" style="font-family:'Unbounded',sans-serif;font-size:48px;font-weight:900;color:var(--accent);line-height:1;">0</div>
+      <div style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;margin-bottom:8px;">Tage in Folge</div>
+      <div id="hippoMsg" style="font-size:13px;font-weight:700;color:var(--ink);"></div>
+    </div>
+
+    <!-- Week count -->
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">Diese Woche</div>
+      <div id="weekCount" style="font-family:'Unbounded',sans-serif;font-size:32px;font-weight:900;color:var(--accent2);">0</div>
+      <div style="font-size:10px;color:var(--muted);">Einheiten</div>
+    </div>
+
+    <!-- Consistency Calendar (last 4 weeks) -->
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;">Konsistenz – letzte 4 Wochen</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px;">
+        ${['Mo','Di','Mi','Do','Fr','Sa','So'].map(d => `<div style="text-align:center;font-size:9px;color:var(--muted);letter-spacing:0.5px;">${d}</div>`).join('')}
+      </div>
+      <div id="consistencyGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
+      <div style="display:flex;gap:12px;margin-top:10px;font-size:10px;color:var(--muted);">
+        <span>🟢 Aktiv</span><span>⚪ Pause</span><span>💤 Ruhetag</span>
+      </div>
+    </div>
+
+    <!-- Weekly summary -->
+    <div id="weeklySummary" style="background:var(--surface);border:1.5px solid var(--border);border-radius:12px;padding:16px;font-size:13px;line-height:1.7;margin-bottom:16px;"></div>
+
+    <!-- Reality Check Button -->
+    <button onclick="generateRealityCheck()" id="realityBtn" style="width:100%;padding:16px;background:var(--card);border:2px solid var(--accent2);border-radius:12px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all 0.15s;margin-bottom:12px;color:var(--accent2);">
+      📊 Wo stehst du wirklich?
+    </button>
+
+    <!-- Reality Check Loading -->
+    <div class="loading" id="realityLoading" style="display:none;">
+      <div class="spinner"></div>
+      <p>KI analysiert dein tatsächliches Training...</p>
+    </div>
+
+    <!-- Reality Check Result -->
+    <div id="realityResult" style="display:none;margin-bottom:16px;">
+      <div style="background:var(--card);border:2px solid var(--accent2);border-radius:16px;padding:20px;">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent2);margin-bottom:4px;font-family:'Space Mono',monospace;">// Wo stehst du wirklich?</div>
+        <div id="realityTitle" style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:900;margin-bottom:16px;"></div>
+
+        <!-- Comparison bars -->
+        <div id="realityBars" style="margin-bottom:16px;"></div>
+
+        <!-- Overall score -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">
+          <div style="background:var(--surface);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">Kondition erreicht</div>
+            <div id="realityCondition" style="font-family:'Unbounded',sans-serif;font-size:28px;font-weight:900;color:var(--success);"></div>
+          </div>
+          <div style="background:var(--surface);border-radius:10px;padding:14px;text-align:center;">
+            <div style="font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;">vs. Plan</div>
+            <div id="realityVsPlan" style="font-family:'Unbounded',sans-serif;font-size:28px;font-weight:900;color:var(--accent2);"></div>
+          </div>
+        </div>
+
+        <div id="realityInsight" style="padding:14px;background:rgba(42,122,232,0.08);border:1px solid rgba(42,122,232,0.2);border-radius:10px;font-size:13px;line-height:1.7;color:var(--ink);margin-bottom:12px;"></div>
+
+        <div id="realityRows" style="font-size:12px;"></div>
+
+        <button onclick="document.getElementById('realityResult').style.display='none'" class="btn-reset" style="margin-top:12px;">↺ Schließen</button>
+      </div>
+    </div>
+
+    <!-- Routine Button -->
+    <button onclick="generateRoutine()" id="routineBtn" style="width:100%;padding:16px;background:var(--card);border:2px solid var(--ink);border-radius:12px;font-family:'Unbounded',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:all 0.15s;margin-bottom:16px;">
+      🧘‍♀️ Meine Routine für heute generieren
+    </button>
+
+    <!-- Routine Loading -->
+    <div class="loading" id="routineLoading">
+      <div class="spinner"></div>
+      <p>KI analysiert deine letzten 5 Tage...</p>
+    </div>
+
+    <!-- Routine Result -->
+    <div id="routineResult" style="display:none;">
+      <div style="background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:20px;">
+        <div style="font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">Deine persönliche Routine</div>
+        <div id="routineTitle" style="font-family:'Unbounded',sans-serif;font-size:16px;font-weight:900;margin-bottom:6px;"></div>
+        <div id="routineDuration" style="font-size:11px;color:var(--muted);margin-bottom:16px;font-family:'Space Mono',monospace;"></div>
+        <div id="routineExercises"></div>
+        <div id="routineTip" style="margin-top:16px;padding:12px;background:var(--surface);border-radius:8px;font-size:12px;line-height:1.7;color:var(--muted);"></div>
+        <button onclick="startGuidedMode()" style="width:100%;margin-top:16px;padding:16px;background:var(--accent);color:white;border:none;border-radius:10px;font-family:'Unbounded',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:0.5px;">
+          ▶ Guided Mode starten
+        </button>
+        <button onclick="document.getElementById('routineResult').style.display='none'" class="btn-reset" style="margin-top:8px;">↺ Neue Routine</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GUIDED MODE OVERLAY -->
+  <div id="guidedOverlay" style="display:none;position:fixed;inset:0;background:#0a0a0f;z-index:1000;flex-direction:column;align-items:center;justify-content:center;padding:24px;">
+    <div style="width:100%;max-width:400px;text-align:center;">
+      <!-- Progress -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+        <button onclick="stopGuidedMode()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">✕ Beenden</button>
+        <div id="guidedProgress" style="font-family:'Space Mono',monospace;font-size:12px;color:#888;"></div>
+        <button onclick="nextExercise()" style="background:transparent;border:1px solid #444;color:#888;padding:8px 14px;border-radius:8px;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;">Weiter →</button>
+      </div>
+
+      <!-- Exercise number -->
+      <div id="guidedNumber" style="font-family:'Unbounded',sans-serif;font-size:80px;font-weight:900;color:#e8502a;line-height:1;margin-bottom:8px;"></div>
+
+      <!-- Animation -->
+      <div id="guidedAnimation" style="margin:16px auto;width:120px;height:120px;display:flex;align-items:center;justify-content:center;"></div>
+
+      <!-- Exercise name -->
+      <div id="guidedName" style="font-family:'Unbounded',sans-serif;font-size:22px;font-weight:900;color:white;margin-bottom:10px;line-height:1.2;"></div>
+
+      <!-- Description -->
+      <div id="guidedDesc" style="font-size:14px;color:#888;line-height:1.7;margin-bottom:24px;"></div>
+
+      <!-- Timer circle -->
+      <div style="position:relative;width:130px;height:130px;margin:0 auto 24px;">
+        <svg width="130" height="130" style="transform:rotate(-90deg);">
+          <circle cx="65" cy="65" r="58" fill="none" stroke="#222" stroke-width="8"/>
+          <circle id="timerCircle" cx="65" cy="65" r="58" fill="none" stroke="#e8502a" stroke-width="8"
+            stroke-dasharray="364" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear;"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+          <div id="timerDisplay" style="font-family:'Unbounded',sans-serif;font-size:36px;font-weight:900;color:white;"></div>
+          <div style="font-size:10px;color:#666;letter-spacing:2px;text-transform:uppercase;">Sek</div>
+        </div>
+      </div>
+
+      <!-- Pause/Resume -->
+      <button id="pauseBtn" onclick="togglePause()" style="width:100%;padding:16px;background:#e8502a;color:white;border:none;border-radius:12px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;">
+        ⏸ Pause
+      </button>
+    </div>
+  </div>
+
+  <!-- IMPORT TAB -->
+  <div class="tab-content" id="tab-import">
+    <p class="section-title">Plan einlesen</p>
+
+    <div style="background:var(--card);border:1.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;font-size:12px;line-height:1.7;color:var(--muted);">
+      📸 Foto deines Trainingsplans hochladen – egal ob Garmin Screenshot, Zettel, Excel oder PDF-Foto. Die KI liest alles automatisch aus.
+    </div>
+
+    <div class="upload-zone" id="importZone">
+      <div class="upload-icon">📋</div>
+      <h3>Trainingsplan fotografieren</h3>
+      <p>Garmin · Zettel · Excel · Trainer-PDF</p>
+    </div>
+    <input type="file" id="importFileInput" accept="image/*">
+
+    <div id="importPreview" style="margin-bottom:16px;"></div>
+
+    <button class="btn-analyze" id="importBtn" disabled>
+      Plan einlesen →
+    </button>
+
+    <div class="loading" id="importLoading">
+      <div class="spinner"></div>
+      <p>KI liest Trainingsplan aus...</p>
+    </div>
+
+    <div id="importResult" style="display:none;">
+      <p class="section-title">Erkannter Plan</p>
+      <div class="week-grid" id="importedPlanGrid"></div>
+      <button class="btn-save-plan" onclick="confirmImportedPlan()">✓ Plan übernehmen</button>
+      <button class="btn-reset" onclick="resetImport()">↺ Anderes Foto</button>
+    </div>
+  </div>
+
+  <!-- PLAN TAB -->
+  <div class="tab-content" id="tab-plan">
+    <p class="section-title">Diese Woche</p>
+
+    <div class="week-overview" id="weekOverview"></div>
+
+    <p class="section-title">Plan bearbeiten</p>
+    <div class="week-grid" id="weekGrid"></div>
+    <button class="btn-save-plan" onclick="savePlan()">Plan speichern</button>
+  </div>
+
+  <!-- LOG TAB -->
+  <div class="tab-content" id="tab-log">
+    <p class="section-title">Screenshot hochladen</p>
+
+    <div class="upload-zone" id="uploadZone">
+      <div class="upload-icon">📊</div>
+      <h3>Garmin / Strava / Uhr</h3>
+      <p>Screenshot hochladen → KI analysiert automatisch</p>
+    </div>
+    <input type="file" id="fileInput" accept="image/*" multiple>
+
+    <div class="previews" id="previews"></div>
+
+    <button class="btn-analyze" id="analyzeBtn" disabled>
+      Einheit analysieren →
+    </button>
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <p>KI analysiert...</p>
+    </div>
+
+    <div class="results" id="results">
+      <div class="deviation-card" id="deviationCard">
+        <div class="deviation-header">
+          <span class="deviation-title" id="deviationTitle">Analyse</span>
+          <span class="status-badge" id="statusBadge">–</span>
+        </div>
+        <div class="stats-row" id="statsRow"></div>
+        <p class="analysis-text" id="analysisText"></p>
+        <div class="caption-box">
+          <div class="caption-label">// Instagram Caption</div>
+          <div class="caption-text" id="captionText"></div>
+          <button class="btn-copy" id="copyBtn">Kopieren</button>
+        </div>
+      </div>
+      <button class="btn-reset" id="resetBtn">↺ Neue Einheit</button>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history">
+    <p class="section-title">Trainings-Verlauf</p>
+    <div id="historyList"></div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const DAY_NAMES = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+const TYPES = ['Kraft', 'Ausdauer', 'Outdoor', 'Ruhetag', 'Flexibel'];
+
+let plan = JSON.parse(localStorage.getItem('sot_plan') || 'null') || DAY_NAMES.map((d, i) => ({
+  day: d, short: DAYS[i],
+  type: i === 6 ? 'Ruhetag' : i === 5 ? 'Ausdauer' : 'Kraft',
+  note: i === 6 ? '' : i === 5 ? 'Laufen 30min' : 'Gym'
+}));
+
+let history = JSON.parse(localStorage.getItem('sot_history') || '[]');
+let uploadedFiles = [];
+
+// Import Plan
+let importedPlanData = null;
+const importZone = document.getElementById('importZone');
+const importFileInput = document.getElementById('importFileInput');
+
+importZone.addEventListener('click', () => importFileInput.click());
+importFileInput.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById('importPreview');
+    preview.innerHTML = `<div class="preview-item" style="max-width:180px;aspect-ratio:auto;max-height:240px;"><img src="${ev.target.result}" style="width:100%;height:100%;object-fit:contain;"></div>`;
+    document.getElementById('importBtn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('importBtn').addEventListener('click', async () => {
+  const file = importFileInput.files[0];
+  if (!file) return;
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('importLoading').classList.add('active');
+  document.getElementById('importResult').style.display = 'none';
+
+  try {
+    const base64 = await fileToBase64(file);
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            { type: "image", source: { type: "base64", media_type: file.type, data: base64 } },
+            {
+              type: "text",
+              text: `Lies diesen Trainingsplan aus. Es kann ein Garmin Screenshot, ein Zettel, eine Tabelle oder ein anderes Format sein.
+
+Extrahiere den Wochenplan (Mo-So) und antworte NUR mit JSON (keine Backticks):
+{
+  "plan": [
+    {"day": "Montag", "short": "Mo", "type": "Kraft/Ausdauer/Outdoor/Ruhetag/Flexibel", "note": "Details z.B. Laufen 5km oder Gym Beine"},
+    {"day": "Dienstag", "short": "Di", "type": "...", "note": "..."},
+    {"day": "Mittwoch", "short": "Mi", "type": "...", "note": "..."},
+    {"day": "Donnerstag", "short": "Do", "type": "...", "note": "..."},
+    {"day": "Freitag", "short": "Fr", "type": "...", "note": "..."},
+    {"day": "Samstag", "short": "Sa", "type": "...", "note": "..."},
+    {"day": "Sonntag", "short": "So", "type": "Ruhetag", "note": ""}
+  ]
+}
+Falls ein Tag nicht erkennbar ist, setze type "Flexibel" und note "".`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    importedPlanData = parsed.plan;
+    showImportedPlan(parsed.plan);
+
+  } catch (err) {
+    alert('Fehler beim Einlesen – bitte nochmal versuchen.');
+    console.error(err);
+  } finally {
+    document.getElementById('importLoading').classList.remove('active');
+    document.getElementById('importBtn').disabled = false;
+  }
+});
+
+function showImportedPlan(importedPlan) {
+  const grid = document.getElementById('importedPlanGrid');
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  grid.innerHTML = importedPlan.map((day, i) => `
+    <div class="day-row">
+      <span class="day-label ${i === todayIdx ? 'today' : ''}">${day.short}</span>
+      <input class="day-input" type="text" value="${day.note}" placeholder="..."
+        onchange="importedPlanData[${i}].note = this.value">
+      <select class="day-type" onchange="importedPlanData[${i}].type = this.value">
+        ${['Kraft','Ausdauer','Outdoor','Ruhetag','Flexibel'].map(t => `<option ${t === day.type ? 'selected' : ''}>${t}</option>`).join('')}
+      </select>
+    </div>
+  `).join('');
+  document.getElementById('importResult').style.display = 'block';
+  document.getElementById('importResult').scrollIntoView({ behavior: 'smooth' });
+}
+
+function confirmImportedPlan() {
+  if (!importedPlanData) return;
+  plan = importedPlanData;
+  localStorage.setItem('sot_plan', JSON.stringify(plan));
+  renderPlan();
+  renderWeekOverview();
+  const btn = document.querySelector('#tab-import .btn-save-plan');
+  btn.textContent = '✓ Plan gespeichert!';
+  setTimeout(() => {
+    btn.textContent = '✓ Plan übernehmen';
+    // Switch to plan tab
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('tab-plan').classList.add('active');
+    document.querySelectorAll('.tab')[1].classList.add('active');
+  }, 1500);
+}
+
+function resetImport() {
+  importFileInput.value = '';
+  document.getElementById('importPreview').innerHTML = '';
+  document.getElementById('importBtn').disabled = true;
+  document.getElementById('importResult').style.display = 'none';
+  importedPlanData = null;
+}
+
+// Reality Check
+async function generateRealityCheck() {
+  const last7 = history.filter(h => (Date.now() - h.timestamp) < 7 * 86400000);
+
+  document.getElementById('realityBtn').disabled = true;
+  document.getElementById('realityLoading').style.display = 'block';
+  document.getElementById('realityResult').style.display = 'none';
+
+  const actualSummary = last7.length === 0
+    ? 'Keine Aktivitäten diese Woche.'
+    : last7.map(h => `${h.sportart} (${h.dauer || '?'}, Intensität: ${h.intensitaet || '?'})`).join(', ');
+
+  const planSummary = plan.map(d => `${d.short}: ${d.type} – ${d.note || 'kein Plan'}`).join(', ');
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Du bist ein positiver Sport-Analyst. Vergleiche Plan vs. tatsächliches Training und zeige wie viel die Person wirklich für ihre Kondition getan hat – auch wenn sie vom Plan abgewichen ist.
+
+Wochenplan: ${planSummary}
+Tatsächlich gemacht: ${actualSummary}
+
+Wichtig: Surfen = sehr gutes Ausdauer- und Krafttraining. Sei ehrlich aber positiv – zeige was wirklich erreicht wurde.
+
+Antworte NUR mit JSON (keine Backticks):
+{
+  "titel": "kurzer motivierender Titel z.B. 'Du hast mehr getan als du denkst'",
+  "kondition_prozent": 85,
+  "vs_plan_prozent": 72,
+  "kategorien": [
+    {"name": "Ausdauer", "geplant": "3:38 Std Laufen", "gemacht": "4:41 Std Surfen", "erfuellung": 95, "kommentar": "Surfen trainiert Ausdauer genauso effektiv"},
+    {"name": "Kraft", "geplant": "2x Gym", "gemacht": "1x Kraft + Paddeln", "erfuellung": 70, "kommentar": "Paddeln ist intensives Schulter/Core Training"},
+    {"name": "Beweglichkeit", "geplant": "nicht geplant", "gemacht": "Balance & Koordination durchs Surfen", "erfuellung": 100, "kommentar": "Bonus – war nicht mal eingeplant!"}
+  ],
+  "insight": "2-3 motivierende Sätze: Was hat die Person wirklich geleistet? Was hat sie für ihre Kondition getan auch wenn es nicht der Plan war?",
+  "fazit": "1 kraftvoller Abschlusssatz"
+}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    showRealityCheck(parsed);
+
+  } catch (err) {
+    alert('Fehler – bitte nochmal versuchen.');
+    console.error(err);
+  } finally {
+    document.getElementById('realityLoading').style.display = 'none';
+    document.getElementById('realityBtn').disabled = false;
+  }
+}
+
+function showRealityCheck(data) {
+  document.getElementById('realityTitle').textContent = data.titel;
+  document.getElementById('realityCondition').textContent = data.kondition_prozent + '%';
+  document.getElementById('realityVsPlan').textContent = data.vs_plan_prozent + '%';
+  document.getElementById('realityInsight').textContent = data.insight;
+
+  // Comparison bars
+  document.getElementById('realityBars').innerHTML = data.kategorien.map(k => `
+    <div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="font-size:12px;font-weight:700;">${k.name}</span>
+        <span style="font-size:12px;color:var(--accent2);font-family:'Space Mono',monospace;">${k.erfuellung}%</span>
+      </div>
+      <div style="background:var(--border);border-radius:4px;height:8px;margin-bottom:4px;">
+        <div style="background:${k.erfuellung >= 80 ? 'var(--success)' : k.erfuellung >= 50 ? 'var(--warn)' : 'var(--accent)'};height:8px;border-radius:4px;width:${k.erfuellung}%;transition:width 0.8s ease;"></div>
+      </div>
+      <div style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">${k.kommentar}</div>
+    </div>
+  `).join('');
+
+  // Plan vs actual rows
+  document.getElementById('realityRows').innerHTML = `
+    <div style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
+      <div style="font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;">Plan vs. Realität</div>
+      ${data.kategorien.map(k => `
+        <div style="display:grid;grid-template-columns:80px 1fr 1fr;gap:8px;margin-bottom:8px;font-size:11px;">
+          <span style="color:var(--muted);font-weight:700;">${k.name}</span>
+          <span style="color:var(--muted);">📋 ${k.geplant}</span>
+          <span style="color:var(--success);">✓ ${k.gemacht}</span>
+        </div>
+      `).join('')}
+    </div>
+    <div style="margin-top:14px;padding:12px;background:var(--surface);border-radius:8px;font-size:12px;font-weight:700;color:var(--ink);line-height:1.6;">${data.fazit}</div>
+  `;
+
+  document.getElementById('realityResult').style.display = 'block';
+  document.getElementById('realityResult').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Guided Mode
+let guidedExercises = [];
+let guidedIndex = 0;
+let guidedTimer = null;
+let guidedSeconds = 0;
+let guidedTotalSeconds = 0;
+let guidedPaused = false;
+
+function parseDuration(dauer) {
+  if (!dauer) return 30;
+  const match = dauer.match(/(\d+)/);
+  return match ? parseInt(match[1]) : 30;
+}
+
+function startGuidedMode() {
+  const exercises = [];
+  document.querySelectorAll('#routineExercises > div').forEach((el, i) => {
+    const name = el.querySelector('div > div:first-child')?.textContent || '';
+    const desc = el.querySelector('div > div:last-child')?.textContent || '';
+    const dauer = el.querySelector('div:last-child')?.textContent || '30 Sek';
+    exercises.push({ name, desc, dauer, seconds: parseDuration(dauer) });
+  });
+
+  if (exercises.length === 0) return;
+  guidedExercises = exercises;
+  guidedIndex = 0;
+  guidedPaused = false;
+
+  document.getElementById('guidedOverlay').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  showGuidedExercise();
+}
+
+function showGuidedExercise() {
+  if (guidedIndex >= guidedExercises.length) {
+    finishGuidedMode();
+    return;
+  }
+
+  clearInterval(guidedTimer);
+  const ex = guidedExercises[guidedIndex];
+  guidedSeconds = ex.seconds;
+  guidedTotalSeconds = ex.seconds;
+  guidedPaused = false;
+
+  document.getElementById('guidedNumber').textContent = guidedIndex + 1;
+  document.getElementById('guidedName').textContent = ex.name;
+  document.getElementById('guidedDesc').textContent = ex.desc;
+  document.getElementById('guidedProgress').textContent = `${guidedIndex + 1} / ${guidedExercises.length}`;
+  document.getElementById('pauseBtn').textContent = '⏸ Pause';
+
+  // Show animation
+  const animEl = document.getElementById('guidedAnimation');
+  const svgContent = getExerciseAnimation(ex.name);
+  // Scale up the SVG for guided mode
+  animEl.innerHTML = svgContent.replace('width="60" height="60"', 'width="120" height="120"').replace('viewBox="0 0 60 60"', 'viewBox="0 0 60 60"');
+
+  updateTimerDisplay();
+  startTimer();
+}
+
+function startTimer() {
+  guidedTimer = setInterval(() => {
+    if (guidedPaused) return;
+    guidedSeconds--;
+    updateTimerDisplay();
+    if (guidedSeconds <= 0) {
+      clearInterval(guidedTimer);
+      setTimeout(() => {
+        guidedIndex++;
+        showGuidedExercise();
+      }, 800);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = guidedSeconds;
+  const circumference = 364;
+  const progress = guidedSeconds / guidedTotalSeconds;
+  const offset = circumference * (1 - progress);
+  document.getElementById('timerCircle').style.strokeDashoffset = offset;
+  // Color changes as time runs out
+  const color = guidedSeconds <= 5 ? '#e8a02a' : '#e8502a';
+  document.getElementById('timerCircle').style.stroke = color;
+}
+
+function togglePause() {
+  guidedPaused = !guidedPaused;
+  document.getElementById('pauseBtn').textContent = guidedPaused ? '▶ Weiter' : '⏸ Pause';
+}
+
+function nextExercise() {
+  clearInterval(guidedTimer);
+  guidedIndex++;
+  showGuidedExercise();
+}
+
+function stopGuidedMode() {
+  clearInterval(guidedTimer);
+  document.getElementById('guidedOverlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function finishGuidedMode() {
+  clearInterval(guidedTimer);
+  const overlay = document.getElementById('guidedOverlay');
+  overlay.querySelector('div').innerHTML = `
+    <div style="text-align:center;color:white;">
+      <div style="font-size:80px;margin-bottom:16px;">🎉</div>
+      <div style="font-family:'Unbounded',sans-serif;font-size:28px;font-weight:900;color:#e8502a;margin-bottom:12px;">Fertig!</div>
+      <div style="font-size:16px;color:#888;margin-bottom:32px;line-height:1.7;">Routine abgeschlossen.<br>Dein Körper dankt es dir. 💪</div>
+      <button onclick="stopGuidedMode()" style="width:100%;padding:16px;background:#e8502a;color:white;border:none;border-radius:12px;font-family:'Unbounded',sans-serif;font-size:15px;font-weight:700;cursor:pointer;">
+        ✓ Zurück
+      </button>
+    </div>
+  `;
+  document.body.style.overflow = '';
+}
+
+// Routine Generator
+async function generateRoutine() {
+  const last5 = history.slice(0, 10).filter(h => {
+    return (Date.now() - h.timestamp) < 5 * 86400000;
+  });
+
+  document.getElementById('routineBtn').disabled = true;
+  document.getElementById('routineLoading').classList.add('active');
+  document.getElementById('routineResult').style.display = 'none';
+
+  const summary = last5.length === 0
+    ? 'Keine Aktivitäten in den letzten 5 Tagen.'
+    : last5.map(h => `${h.sportart} (${h.dauer || '?'}, Intensität: ${h.intensitaet || '?'})`).join(', ');
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: `Du bist ein Bewegungscoach. Erstelle eine 15-20 Minuten Stretch/Yoga/Mobilität-Routine basierend auf den letzten 5 Tagen Training.
+
+Aktivitäten: ${summary}
+
+Antworte NUR mit JSON (keine Backticks):
+{
+  "titel": "kurzer Name der Routine z.B. 'Schulter & Core Release'",
+  "dauer": "z.B. 15 Min",
+  "fokus": "kurze Erklärung welche Muskelgruppen und warum",
+  "uebungen": [
+    {"name": "Übungsname", "dauer": "30 Sek", "beschreibung": "kurze Anleitung in 1 Satz"},
+    {"name": "...", "dauer": "...", "beschreibung": "..."}
+  ],
+  "tipp": "1 motivierender Satz warum diese Routine heute wichtig ist"
+}
+Genau 5-6 Übungen. Kein Equipment nötig. Auf Deutsch.`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    showRoutine(parsed);
+
+  } catch (err) {
+    alert('Fehler – bitte nochmal versuchen.');
+    console.error(err);
+  } finally {
+    document.getElementById('routineLoading').classList.remove('active');
+    document.getElementById('routineBtn').disabled = false;
+  }
+}
+
+function getExerciseAnimation(name) {
+  const n = name.toLowerCase();
+  // Map exercise types to SVG animations
+  if (n.includes('schulter') || n.includes('arm') || n.includes('kreisen')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <circle cx="30" cy="10" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="30" y1="16" x2="30" y2="36" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="36" x2="22" y2="50" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="36" x2="38" y2="50" stroke="var(--ink)" stroke-width="2"/>
+      <g transform-origin="30 22">
+        <line x1="30" y1="22" x2="48" y2="16" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="0 30 22" to="360 30 22" dur="2s" repeatCount="indefinite"/>
+        </line>
+      </g>
+      <g transform-origin="30 22">
+        <line x1="30" y1="22" x2="12" y2="28" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round">
+          <animateTransform attributeName="transform" type="rotate" from="180 30 22" to="540 30 22" dur="2s" repeatCount="indefinite"/>
+        </line>
+      </g>
+    </svg>`;
+  }
+  if (n.includes('rotation') || n.includes('dreh') || n.includes('thorax')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <circle cx="30" cy="10" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="30" y1="16" x2="30" y2="38" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="38" x2="22" y2="52" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="38" x2="38" y2="52" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="14" y1="26" x2="46" y2="26" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate" from="-25 30 26" to="25 30 26" dur="1.5s" repeatCount="indefinite" additive="sum" calcMode="spline" keySplines="0.4 0 0.6 1;0.4 0 0.6 1" keyTimes="0;0.5;1" values="-25 30 26;25 30 26;-25 30 26"/>
+      </line>
+    </svg>`;
+  }
+  if (n.includes('hüft') || n.includes('ausfallschritt') || n.includes('lunge')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <circle cx="22" cy="8" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="22" y1="13" x2="22" y2="28" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="10" y1="22" x2="34" y2="22" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="22" y1="28" x2="10" y2="44" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="22" y1="28" x2="44" y2="36" stroke="var(--accent)" stroke-width="2">
+        <animate attributeName="x2" values="44;48;44" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="36;38;36" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="44" y1="36" x2="50" y2="50" stroke="var(--ink)" stroke-width="2">
+        <animate attributeName="x1" values="44;48;44" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="y1" values="36;38;36" dur="2s" repeatCount="indefinite"/>
+      </line>
+      <line x1="10" y1="44" x2="10" y2="54" stroke="var(--ink)" stroke-width="2"/>
+    </svg>`;
+  }
+  if (n.includes('waden') || n.includes('calf') || n.includes('wand')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <rect x="48" y="5" width="4" height="55" fill="var(--border)" rx="2"/>
+      <circle cx="28" cy="10" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="28" y1="15" x2="28" y2="32" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="16" y1="24" x2="40" y2="24" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="40" y1="24" x2="46" y2="28" stroke="var(--accent2)" stroke-width="2"/>
+      <line x1="28" y1="32" x2="20" y2="48" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="28" y1="32" x2="34" y2="48" stroke="var(--ink)" stroke-width="2">
+        <animate attributeName="y2" values="48;44;48" dur="1.5s" repeatCount="indefinite"/>
+      </line>
+      <line x1="20" y1="48" x2="20" y2="56" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="34" y1="48" x2="34" y2="56" stroke="var(--ink)" stroke-width="2">
+        <animate attributeName="y1" values="48;44;48" dur="1.5s" repeatCount="indefinite"/>
+      </line>
+    </svg>`;
+  }
+  if (n.includes('child') || n.includes('kind') || n.includes('pose')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <circle cx="48" cy="28" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M43 30 Q30 38 15 40" stroke="var(--ink)" stroke-width="2" fill="none"/>
+      <line x1="43" y1="30" x2="38" y2="42" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="38" y1="42" x2="28" y2="48" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="15" y1="40" x2="8" y2="44" stroke="var(--accent2)" stroke-width="2.5" stroke-linecap="round">
+        <animate attributeName="x2" values="8;6;8" dur="3s" repeatCount="indefinite"/>
+        <animate attributeName="y2" values="44;46;44" dur="3s" repeatCount="indefinite"/>
+      </line>
+      <line x1="28" y1="48" x2="28" y2="56" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="38" y1="48" x2="38" y2="56" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="8" y1="44" x2="8" y2="56" fill="none" stroke="var(--border)" stroke-width="1.5"/>
+    </svg>`;
+  }
+  if (n.includes('liegen') || n.includes('wirbel') || n.includes('twist') || n.includes('rücken')) {
+    return `<svg width="60" height="60" viewBox="0 0 60 60">
+      <circle cx="10" cy="28" r="5" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <line x1="15" y1="28" x2="42" y2="28" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="28" x2="24" y2="42" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="30" y1="28" x2="44" y2="20" stroke="var(--accent)" stroke-width="2">
+        <animate attributeName="y2" values="20;36;20" dur="2.5s" repeatCount="indefinite"/>
+        <animate attributeName="x2" values="44;16;44" dur="2.5s" repeatCount="indefinite"/>
+      </line>
+      <line x1="24" y1="42" x2="18" y2="52" stroke="var(--ink)" stroke-width="2"/>
+      <line x1="24" y1="42" x2="34" y2="52" stroke="var(--ink)" stroke-width="2"/>
+    </svg>`;
+  }
+  // Default – generic stretch figure
+  return `<svg width="60" height="60" viewBox="0 0 60 60">
+    <circle cx="30" cy="10" r="6" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <line x1="30" y1="16" x2="30" y2="36" stroke="var(--ink)" stroke-width="2"/>
+    <line x1="30" y1="36" x2="22" y2="50" stroke="var(--ink)" stroke-width="2"/>
+    <line x1="30" y1="36" x2="38" y2="50" stroke="var(--ink)" stroke-width="2"/>
+    <line x1="14" y1="24" x2="46" y2="24" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round">
+      <animate attributeName="y1" values="24;20;24" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="y2" values="24;20;24" dur="2s" repeatCount="indefinite"/>
+    </line>
+  </svg>`;
+}
+
+function showRoutine(data) {
+  document.getElementById('routineTitle').textContent = data.titel;
+  document.getElementById('routineDuration').textContent = `⏱ ${data.dauer} · ${data.fokus}`;
+  document.getElementById('routineTip').textContent = '💡 ' + data.tipp;
+
+  document.getElementById('routineExercises').innerHTML = data.uebungen.map((u, i) => `
+    <div style="display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;justify-content:center;background:var(--surface);border-radius:10px;padding:6px;">
+        ${getExerciseAnimation(u.name)}
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:13px;margin-bottom:3px;">${u.name}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.5;">${u.beschreibung}</div>
+      </div>
+      <div style="font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);white-space:nowrap;text-align:right;">${u.dauer}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('routineResult').style.display = 'block';
+  document.getElementById('routineResult').scrollIntoView({ behavior: 'smooth' });
+}
+
+function getHippo(streak) {
+  // Different hippo states based on streak
+  if (streak === 0) {
+    // Sleepy hippo
+    return `<svg width="100" height="100" viewBox="0 0 100 100">
+      <!-- Body -->
+      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
+      <!-- Head -->
+      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
+      <!-- Ears -->
+      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <!-- Eyes closed (sleeping) -->
+      <path d="M40 40 Q43 38 46 40" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M54 40 Q57 38 60 40" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Nose -->
+      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
+      <circle cx="46" cy="49" r="2" fill="#555"/>
+      <circle cx="54" cy="49" r="2" fill="#555"/>
+      <!-- ZZZ -->
+      <text x="68" y="30" font-size="12" fill="#aaa" font-weight="bold">z</text>
+      <text x="74" y="22" font-size="14" fill="#bbb" font-weight="bold">z</text>
+      <text x="80" y="13" font-size="16" fill="#ccc" font-weight="bold">Z</text>
+      <!-- Legs -->
+      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+    </svg>`;
+  } else if (streak < 7) {
+    // Happy hippo
+    return `<svg width="100" height="100" viewBox="0 0 100 100">
+      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
+      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <circle cx="43" cy="40" r="4" fill="white"/>
+      <circle cx="57" cy="40" r="4" fill="white"/>
+      <circle cx="44" cy="41" r="2" fill="#333"/>
+      <circle cx="58" cy="41" r="2" fill="#333"/>
+      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
+      <circle cx="46" cy="49" r="2" fill="#555"/>
+      <circle cx="54" cy="49" r="2" fill="#555"/>
+      <path d="M42 55 Q50 60 58 55" stroke="#444" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+      <!-- Small weights -->
+      <rect x="18" y="60" width="12" height="4" rx="2" fill="#e8502a"/>
+      <rect x="70" y="60" width="12" height="4" rx="2" fill="#e8502a"/>
+    </svg>`;
+  } else if (streak < 14) {
+    // Cool hippo with sunglasses
+    return `<svg width="100" height="100" viewBox="0 0 100 100">
+      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
+      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <!-- Sunglasses -->
+      <rect x="36" y="37" width="12" height="8" rx="4" fill="#222"/>
+      <rect x="52" y="37" width="12" height="8" rx="4" fill="#222"/>
+      <line x1="48" y1="41" x2="52" y2="41" stroke="#222" stroke-width="2"/>
+      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
+      <circle cx="46" cy="49" r="2" fill="#555"/>
+      <circle cx="54" cy="49" r="2" fill="#555"/>
+      <path d="M42 55 Q50 62 58 55" stroke="#444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="35" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+      <ellipse cx="65" cy="84" rx="9" ry="6" fill="#6A8DAF"/>
+      <!-- Fire -->
+      <text x="44" y="18" font-size="16">🔥</text>
+    </svg>`;
+  } else if (streak < 30) {
+    // Super hippo with cape
+    return `<svg width="100" height="100" viewBox="0 0 100 100">
+      <!-- Cape -->
+      <path d="M28 55 Q20 80 35 88 Q50 75 65 88 Q80 80 72 55" fill="#e8502a" opacity="0.9"/>
+      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
+      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#7B9EBF"/>
+      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <rect x="36" y="37" width="12" height="8" rx="4" fill="#222"/>
+      <rect x="52" y="37" width="12" height="8" rx="4" fill="#222"/>
+      <line x1="48" y1="41" x2="52" y2="41" stroke="#222" stroke-width="2"/>
+      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#9BB5CC"/>
+      <circle cx="46" cy="49" r="2" fill="#555"/>
+      <circle cx="54" cy="49" r="2" fill="#555"/>
+      <path d="M42 55 Q50 62 58 55" stroke="#444" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Lightning bolt -->
+      <text x="44" y="75" font-size="14">⚡</text>
+      <!-- Stars -->
+      <text x="20" y="25" font-size="12">⭐</text>
+      <text x="68" y="20" font-size="12">⭐</text>
+    </svg>`;
+  } else {
+    // Legendary hippo on fire
+    return `<svg width="100" height="100" viewBox="0 0 100 100">
+      <!-- Flames -->
+      <text x="15" y="35" font-size="20">🔥</text>
+      <text x="65" y="30" font-size="20">🔥</text>
+      <path d="M28 55 Q20 80 35 88 Q50 75 65 88 Q80 80 72 55" fill="#e8502a" opacity="0.9"/>
+      <ellipse cx="50" cy="65" rx="32" ry="24" fill="#7B9EBF"/>
+      <ellipse cx="50" cy="42" rx="22" ry="18" fill="#FFD700"/>
+      <ellipse cx="32" cy="28" rx="7" ry="6" fill="#FFD700"/>
+      <ellipse cx="68" cy="28" rx="7" ry="6" fill="#FFD700"/>
+      <ellipse cx="32" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <ellipse cx="68" cy="28" rx="4" ry="3" fill="#C4A0B0"/>
+      <rect x="36" y="37" width="12" height="8" rx="4" fill="#111"/>
+      <rect x="52" y="37" width="12" height="8" rx="4" fill="#111"/>
+      <line x1="48" y1="41" x2="52" y2="41" stroke="#111" stroke-width="2"/>
+      <ellipse cx="50" cy="50" rx="10" ry="6" fill="#FFE066"/>
+      <circle cx="46" cy="49" r="2" fill="#333"/>
+      <circle cx="54" cy="49" r="2" fill="#333"/>
+      <path d="M42 55 Q50 63 58 55" stroke="#333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <text x="40" y="75" font-size="16">👑</text>
+    </svg>`;
+  }
+}
+
+function getHippoMessage(streak) {
+  if (streak === 0) return "Dein inneres Nilpferd wartet auf dich... 🦛";
+  if (streak < 3) return "Dein inneres Nilpferd ist aufgewacht! 🦛";
+  if (streak < 7) return "Dein inneres Nilpferd ist stolz auf dich! 🦛💪";
+  if (streak < 14) return "Dein inneres Nilpferd trägt Sonnenbrille! 😎🦛";
+  if (streak < 30) return "Dein inneres Nilpferd ist ein Superheld! 🦛⚡";
+  return "Dein inneres Nilpferd ist eine Legende! 🦛👑🔥";
+}
+
+// Dashboard
+function renderDashboard() {
+  const now = Date.now();
+  const oneDayMs = 86400000;
+
+  // Calculate streak
+  let streak = 0;
+  let checkDay = new Date(); checkDay.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+    const start = checkDay.getTime();
+    const end = start + oneDayMs;
+    const hasActivity = history.some(h => h.timestamp >= start && h.timestamp < end);
+    if (hasActivity) { streak++; checkDay.setDate(checkDay.getDate() - 1); }
+    else if (i === 0) { checkDay.setDate(checkDay.getDate() - 1); } // allow today not yet logged
+    else break;
+  }
+
+  // This week count
+  const weekStart = new Date(); weekStart.setHours(0,0,0,0);
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+  const weekCount = history.filter(h => h.timestamp >= weekStart.getTime()).length;
+
+  // Days since last activity
+  const lastActivity = history.length > 0 ? history[0].timestamp : null;
+  const daysSince = lastActivity ? Math.floor((now - lastActivity) / oneDayMs) : 999;
+
+  document.getElementById('hippoStreak').textContent = streak;
+  document.getElementById('hippoSvg').innerHTML = getHippo(streak);
+  document.getElementById('hippoMsg').textContent = getHippoMessage(streak);
+  document.getElementById('weekCount').textContent = weekCount;
+
+  // Status card
+  const card = document.getElementById('statusCard');
+  const emoji = document.getElementById('statusEmoji');
+  const title = document.getElementById('statusTitle');
+  const msg = document.getElementById('statusMsg');
+  const action = document.getElementById('statusAction');
+
+  if (daysSince <= 1) {
+    card.style.background = 'rgba(42,181,90,0.08)';
+    card.style.borderColor = 'var(--success)';
+    emoji.textContent = '🔥';
+    title.textContent = 'On Track!';
+    msg.textContent = weekCount >= 4
+      ? 'Stark diese Woche – aber vergiss den Ruhetag nicht. Mehr ist nicht immer besser.'
+      : 'Du bist dran. Genau das zählt. Kein Alles-oder-Nichts – einfach weiter.';
+    action.textContent = '+ Einheit loggen';
+    action.onclick = () => { showTabByName('log'); };
+  } else if (daysSince <= 3) {
+    card.style.background = 'rgba(232,160,42,0.08)';
+    card.style.borderColor = 'var(--warn)';
+    emoji.textContent = '😴';
+    title.textContent = 'Kleine Pause';
+    msg.textContent = `${daysSince} Tage Pause – das ist ok. Kurz durchatmen gehört dazu. Morgen wieder? Auch 20 Minuten zählen.`;
+    action.textContent = '+ Einheit loggen';
+    action.onclick = () => { showTabByName('log'); };
+  } else {
+    card.style.background = 'rgba(232,80,42,0.06)';
+    card.style.borderColor = 'var(--accent)';
+    emoji.textContent = '🧘‍♀️';
+    title.textContent = 'Hey – leg die Matte aus.';
+    msg.textContent = `${daysSince === 999 ? 'Noch keine' : daysSince + ' Tage'} Pause. Kein Stress, kein Vorwurf. Aber heute Abend: 15 Minuten Yoga. Das reicht. Du musst nicht alles nachholen.`;
+    action.textContent = '✓ Yoga gemacht';
+    action.onclick = () => logYoga();
+  }
+
+  // Consistency grid (28 days)
+  const grid = document.getElementById('consistencyGrid');
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  // Start from Monday 4 weeks ago
+  const gridStart = new Date(todayStart);
+  gridStart.setDate(gridStart.getDate() - todayIdx - 21);
+
+  let gridHTML = '';
+  for (let i = 0; i < 28; i++) {
+    const dayStart = new Date(gridStart); dayStart.setDate(gridStart.getDate() + i);
+    const dayEnd = new Date(dayStart); dayEnd.setDate(dayStart.getDate() + 1);
+    const isToday = dayStart.getTime() === todayStart.getTime();
+    const isFuture = dayStart > todayStart;
+    const hasActivity = history.some(h => h.timestamp >= dayStart.getTime() && h.timestamp < dayEnd.getTime());
+    const planIdx = i % 7;
+    const isRestDay = plan[planIdx]?.type === 'Ruhetag';
+
+    let bg, border;
+    if (isFuture) { bg = 'transparent'; border = '1px solid var(--border)'; }
+    else if (hasActivity) { bg = 'var(--success)'; border = 'none'; }
+    else if (isRestDay) { bg = 'var(--border)'; border = 'none'; }
+    else { bg = 'var(--surface)'; border = '1px solid var(--border)'; }
+
+    gridHTML += `<div style="aspect-ratio:1;border-radius:4px;background:${bg};border:${border};${isToday ? 'outline:2px solid var(--accent);outline-offset:1px;' : ''}"></div>`;
+  }
+  grid.innerHTML = gridHTML;
+
+  // Weekly summary
+  const summary = document.getElementById('weeklySummary');
+  if (weekCount === 0) {
+    summary.textContent = 'Diese Woche noch keine Einheit – heute ist ein guter Tag zum Starten. 💪';
+  } else if (weekCount <= 2) {
+    summary.textContent = `Diese Woche ${weekCount}x aktiv. Gut angefangen – dran bleiben ist das Ziel, nicht perfekt sein.`;
+  } else if (weekCount <= 4) {
+    summary.textContent = `Diese Woche ${weekCount}x aktiv. Starke Woche! Das ist nachhaltig – genau so soll es sein. 🎯`;
+  } else {
+    summary.textContent = `Diese Woche ${weekCount}x aktiv. Beeindruckend – aber pass auf dich auf. Ein Ruhetag ist kein verlorener Tag. 🧘‍♀️`;
+  }
+}
+
+function logYoga() {
+  const yogaEntry = {
+    sportart: 'Abend-Yoga',
+    dauer: '15 Min',
+    distanz: '-',
+    herzfrequenz: '-',
+    intensitaet: 'Niedrig',
+    plan_vergleich: 'on-track',
+    plan_kommentar: 'Kleine Einheit – aber genau das zählt.',
+    analyse: '15 Minuten Abend-Yoga. Besser als nichts – viel besser.',
+    instagram_caption: '',
+    timestamp: Date.now(),
+    planDay: { note: 'Abend-Yoga', type: 'Flexibel' }
+  };
+  history.unshift(yogaEntry);
+  localStorage.setItem('sot_history', JSON.stringify(history));
+  renderDashboard();
+
+  const action = document.getElementById('statusAction');
+  action.textContent = '✓ Super gemacht!';
+  setTimeout(() => renderDashboard(), 2000);
+}
+
+function showTabByName(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const tabNames = ['dashboard','import','plan','log','history'];
+  const idx = tabNames.indexOf(name);
+  if (idx >= 0) document.querySelectorAll('.tab')[idx].classList.add('active');
+}
+
+// Tab switching
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'history') renderHistory();
+  if (name === 'plan') renderWeekOverview();
+  if (name === 'dashboard') renderDashboard();
+}
+
+// Plan rendering
+function renderPlan() {
+  const grid = document.getElementById('weekGrid');
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  grid.innerHTML = plan.map((day, i) => `
+    <div class="day-row">
+      <span class="day-label ${i === todayIdx ? 'today' : ''}">${day.short}${i === todayIdx ? ' ←' : ''}</span>
+      <input class="day-input" type="text" value="${day.note}" placeholder="z.B. Gym Beine, Laufen 5km..."
+        onchange="plan[${i}].note = this.value">
+      <select class="day-type" onchange="plan[${i}].type = this.value">
+        ${TYPES.map(t => `<option ${t === day.type ? 'selected' : ''}>${t}</option>`).join('')}
+      </select>
+    </div>
+  `).join('');
+}
+
+function savePlan() {
+  localStorage.setItem('sot_plan', JSON.stringify(plan));
+  const btn = document.querySelector('.btn-save-plan');
+  btn.textContent = '✓ Gespeichert!';
+  setTimeout(() => btn.textContent = 'Plan speichern', 2000);
+  renderWeekOverview();
+}
+
+function renderWeekOverview() {
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  const overview = document.getElementById('weekOverview');
+  overview.innerHTML = plan.map((day, i) => {
+    const done = history.some(h => {
+      const d = new Date(h.timestamp);
+      const dayIdx = (d.getDay() + 6) % 7;
+      const weekDiff = Math.floor((Date.now() - d.getTime()) / (7 * 24 * 60 * 60 * 1000));
+      return dayIdx === i && weekDiff === 0;
+    });
+    const isRest = day.type === 'Ruhetag';
+    const statusClass = isRest ? 'rest' : done ? 'done' : i < todayIdx ? 'missed' : '';
+    return `
+      <div class="week-dot ${statusClass} ${i === todayIdx ? 'today' : ''}">
+        <span class="day-name">${day.short}</span>
+        <span class="dot" title="${day.type}: ${day.note}"></span>
+      </div>
+    `;
+  }).join('');
+}
+
+// Upload
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+uploadZone.addEventListener('click', () => fileInput.click());
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); handleFiles(Array.from(e.dataTransfer.files)); });
+fileInput.addEventListener('change', e => handleFiles(Array.from(e.target.files)));
+
+function handleFiles(files) {
+  files.forEach(file => {
+    if (!file.type.startsWith('image/')) return;
+    uploadedFiles.push(file);
+    const reader = new FileReader();
+    reader.onload = e => addPreview(e.target.result, uploadedFiles.length - 1);
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('analyzeBtn').disabled = uploadedFiles.length === 0;
+}
+
+function addPreview(src, index) {
+  const div = document.createElement('div');
+  div.className = 'preview-item';
+  div.innerHTML = `<img src="${src}"><button class="preview-remove" onclick="removeFile(${index})">×</button>`;
+  document.getElementById('previews').appendChild(div);
+}
+
+function removeFile(index) {
+  uploadedFiles.splice(index, 1);
+  const previews = document.getElementById('previews');
+  previews.innerHTML = '';
+  uploadedFiles.forEach((f, i) => { const r = new FileReader(); r.onload = e => addPreview(e.target.result, i); r.readAsDataURL(f); });
+  document.getElementById('analyzeBtn').disabled = uploadedFiles.length === 0;
+}
+
+// Analyze
+document.getElementById('analyzeBtn').addEventListener('click', analyzeTraining);
+
+async function analyzeTraining() {
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('loading').classList.add('active');
+  document.getElementById('results').classList.remove('active');
+
+  const todayIdx = (new Date().getDay() + 6) % 7;
+  const todayPlan = plan[todayIdx];
+
+  try {
+    const imageContents = await Promise.all(uploadedFiles.map(async file => {
+      const base64 = await fileToBase64(file);
+      return { type: "image", source: { type: "base64", media_type: file.type, data: base64 } };
+    }));
+
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{
+          role: "user",
+          content: [
+            ...imageContents,
+            {
+              type: "text",
+              text: `Du bist Sport-Analyst. Analysiere diese Trainings-Screenshots.
+
+Heutiger Plan: ${todayPlan.type} – "${todayPlan.note}"
+
+Antworte NUR mit JSON (keine Backticks):
+{
+  "sportart": "erkannte Sportart",
+  "dauer": "z.B. 48 Min",
+  "distanz": "z.B. 2.45 km oder -",
+  "herzfrequenz": "z.B. 115 bpm oder -",
+  "intensitaet": "Niedrig / Mittel / Hoch",
+  "plan_vergleich": "on-track / partial / off-track",
+  "plan_kommentar": "1-2 Sätze: Wie gut stimmt das Training mit dem Plan überein?",
+  "analyse": "2-3 Sätze ehrliche Trainingsanalyse auf Deutsch.",
+  "instagram_caption": "Kurzer Post auf Deutsch, max 4 Sätze. Ehrlich, mit Daten, endet mit Frage. #Büroathletin + 3 weitere Hashtags."
+}`
+            }
+          ]
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const text = data.content.map(i => i.text || '').join('');
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    showResults(parsed, todayPlan);
+
+    const entry = { ...parsed, timestamp: Date.now(), planDay: todayPlan };
+    history.unshift(entry);
+    if (history.length > 50) history.pop();
+    localStorage.setItem('sot_history', JSON.stringify(history));
+    renderWeekOverview();
+
+  } catch (err) {
+    alert('Fehler – bitte nochmal versuchen.');
+    console.error(err);
+  } finally {
+    document.getElementById('loading').classList.remove('active');
+    document.getElementById('analyzeBtn').disabled = false;
+  }
+}
+
+function showResults(data, todayPlan) {
+  const card = document.getElementById('deviationCard');
+  const badge = document.getElementById('statusBadge');
+  const status = data.plan_vergleich || 'partial';
+
+  card.className = 'deviation-card ' + status;
+  badge.className = 'status-badge ' + status;
+  badge.textContent = status === 'on-track' ? '✓ On Track' : status === 'off-track' ? '✗ Off Track' : '~ Teilweise';
+
+  document.getElementById('deviationTitle').textContent = `${data.sportart} · Plan: ${todayPlan.note}`;
+
+  const stats = [
+    { label: 'Dauer', value: data.dauer },
+    { label: 'Distanz', value: data.distanz },
+    { label: 'Herzfrequenz', value: data.herzfrequenz },
+    { label: 'Intensität', value: data.intensitaet },
+  ].filter(s => s.value && s.value !== '-');
+
+  document.getElementById('statsRow').innerHTML = stats.map(s => `
+    <div class="stat-box"><div class="label">${s.label}</div><div class="value">${s.value}</div></div>
+  `).join('');
+
+  document.getElementById('analysisText').textContent = (data.plan_kommentar || '') + ' ' + (data.analyse || '');
+  document.getElementById('captionText').textContent = data.instagram_caption;
+
+  document.getElementById('results').classList.add('active');
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  navigator.clipboard.writeText(document.getElementById('captionText').textContent).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Kopiert!';
+    setTimeout(() => btn.textContent = 'Kopieren', 2000);
+  });
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  uploadedFiles = [];
+  document.getElementById('previews').innerHTML = '';
+  fileInput.value = '';
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').classList.remove('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// History
+function renderHistory() {
+  const list = document.getElementById('historyList');
+  if (history.length === 0) {
+    list.innerHTML = '<div class="history-empty">// Noch keine Einheiten geloggt</div>';
+    return;
+  }
+  list.innerHTML = history.map(h => {
+    const d = new Date(h.timestamp);
+    const dateStr = d.toLocaleDateString('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
+    const timeStr = d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const statusIcon = h.plan_vergleich === 'on-track' ? '✓' : h.plan_vergleich === 'off-track' ? '✗' : '~';
+    return `
+      <div class="history-entry">
+        <div class="history-top">
+          <span class="history-sport">${statusIcon} ${h.sportart}</span>
+          <span class="history-date">${dateStr} ${timeStr}</span>
+        </div>
+        <div class="history-stats">${h.dauer || '–'} · ${h.herzfrequenz || '–'} · ${h.intensitaet || '–'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Init
+renderDashboard();
+renderPlan();
+renderWeekOverview();
+</script>
+</body>
+</html>
