@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="110" fill="#1a1410"/>
+
+  <!-- Ears -->
+  <circle cx="148" cy="178" r="50" fill="#7a9dbf"/>
+  <circle cx="364" cy="178" r="50" fill="#7a9dbf"/>
+  <circle cx="148" cy="178" r="28" fill="#f0b0c0"/>
+  <circle cx="364" cy="178" r="28" fill="#f0b0c0"/>
+
+  <!-- Head -->
+  <ellipse cx="256" cy="288" rx="148" ry="128" fill="#7a9dbf"/>
+
+  <!-- Snout -->
+  <ellipse cx="256" cy="355" rx="90" ry="62" fill="#b0cce0"/>
+
+  <!-- Nostrils -->
+  <ellipse cx="224" cy="354" rx="17" ry="11" fill="#5a7d9f"/>
+  <ellipse cx="288" cy="354" rx="17" ry="11" fill="#5a7d9f"/>
+
+  <!-- Eyes -->
+  <circle cx="200" cy="248" r="27" fill="white"/>
+  <circle cx="312" cy="248" r="27" fill="white"/>
+  <circle cx="204" cy="251" r="15" fill="#1a1410"/>
+  <circle cx="316" cy="251" r="15" fill="#1a1410"/>
+  <circle cx="210" cy="245" r="5" fill="white"/>
+  <circle cx="322" cy="245" r="5" fill="white"/>
+
+  <!-- Smile -->
+  <path d="M214 318 Q256 342 298 318" stroke="#5a7d9f" stroke-width="4.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Cheeks -->
+  <circle cx="164" cy="282" r="20" fill="#f0b0c0" opacity="0.35"/>
+  <circle cx="348" cy="282" r="20" fill="#f0b0c0" opacity="0.35"/>
+
+  <!-- Tracking element: streak bar bottom -->
+  <rect x="60" y="430" width="392" height="42" rx="21" fill="#2a2420"/>
+
+  <!-- 7 day dots -->
+  <circle cx="105" cy="451" r="12" fill="#2ab55a"/>
+  <circle cx="160" cy="451" r="12" fill="#2ab55a"/>
+  <circle cx="215" cy="451" r="12" fill="#2ab55a"/>
+  <circle cx="270" cy="451" r="12" fill="#e8502a"/>
+  <circle cx="325" cy="451" r="12" fill="#d4cdc0"/>
+  <circle cx="380" cy="451" r="12" fill="#d4cdc0"/>
+  <circle cx="435" cy="451" r="12" fill="#d4cdc0"/>
+
+  <!-- Flame icon above streak bar -->
+  <text x="256" y="422" font-size="28" text-anchor="middle" dominant-baseline="middle">🔥</text>
+</svg>
